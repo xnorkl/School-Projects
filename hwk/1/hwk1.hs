@@ -10,25 +10,21 @@
 -- its truth table.  This function takes two arguments.
 
 impL :: Bool -> Bool -> Bool
-impL False False = True
-impL False True = True
-impL True False = False
-impL True True = True
+impL = undefined
+
 -- Question 1 (5 pt): Define the previous function using only notL and
 -- orL from the lecture notes.  This function should not case split
 -- over the input.  Hint: Compare the truth table of implication and
 -- disjunction (orL).
 
 notL :: Bool -> Bool
-notL False = True
-notL True = False
+notL = undefined
 
 orL :: Bool -> Bool -> Bool
-orL False False = False
-orL _ _ = True
+orL = undefined
 
 impL' :: Bool -> Bool -> Bool
-impL' = orL(notL(_) _)
+impL' = undefined
 
 -- Question 2 (5 pt): First, what's the type of the following functions?
 -- Second, give an english explanation of the types, and what the
@@ -43,17 +39,11 @@ myst b 0 m = (myst' b)++(myst b 0 (m-1))
 myst b n 0 = (myst' (not b))++(myst b (n - 1) 0)
 myst b n m = (myst' b)++(myst b (n-1) (m-1))++(myst' (not b))
 
-
---Two functions: myst' is a boolean function. Function myst' checks if a
---True or False value is given and then returns either an a or b, respectively.
---Function myst is recursive. It takes three arguments and returns a string
---of a's and b's by calling myst' and the myst function itself takes two 0's as an argument
-
 -- Question 3 (5pt): Define the Sudan function:
 -- http://en.wikipedia.org/wiki/Sudan_function
 
 sudan :: Integer -> Integer -> Integer -> Integer
-sudan x y n = sudan(sudan(x y n+1), sudan(x,y n+1) + y + 1)
+sudan = undefined
 
 -- Question 4 (5 pt): Turn this homework in via your Gitlab repo.
 --
