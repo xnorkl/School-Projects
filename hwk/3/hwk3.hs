@@ -14,8 +14,7 @@
 -- the input character is an integer, but false otherwise.
 
 isInt :: Char -> Bool
-isInt = undefined
-
+isInt c = if c == fromInteger c
 -- Second, you are required to fill in the following auxiliary
 -- function to the tupleToList function that parses a single character
 -- given an accumulator.
