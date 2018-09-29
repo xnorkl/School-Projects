@@ -12,9 +12,15 @@
 -- Question 0 (10 pt).  The first step will require you to write two
 -- functions, the first, a predicate on characters that is true when
 -- the input character is an integer, but false otherwise.
-
+import Data.Char
 isInt :: Char -> Bool
-isInt c = if c == fromInteger c
+--getInt = fromInteger . toInteger
+--isInt c = (getInt(ord c - ord '0')::Word) < 10
+isInt c
+   | c < minimum lc || c > maximum lc = False
+   | otherwise = True
+   where lc = ['0','1','2','3','4','5','6','7','8','9']
+
 -- Second, you are required to fill in the following auxiliary
 -- function to the tupleToList function that parses a single character
 -- given an accumulator.
@@ -31,7 +37,11 @@ isInt c = if c == fromInteger c
 -- Using this intuition define the aux function below, but first, work
 -- out how one would parse "42,24,321" on paper.
 aux :: Maybe (String,[String]) -> Char -> Maybe (String,[String])
-aux acc c = undefined
+aux Nothing _ = Nothing
+aux (Just ((x:xs),ss)) c
+   | null xs = Just (" ",[[]++[x]])
+   | c == x = aux (Just ((xs), ss)) c
+   | c /= x = aux (Just ((xs), [[]++[x]])) c
 
 -- Finally, fill in the undefined part of the following function that
 -- should return the fully parsed input string using reverse and list
@@ -39,13 +49,12 @@ aux acc c = undefined
 tupleToList :: String -> Maybe [String]
 tupleToList s = case (foldl aux (Just ("",[])) s) of
                   Nothing -> Nothing
-                  Just (s,acc) -> Just $ undefined
-
-
+                  Just (s,(x:xs)) -> Just $ x : reverse xs
+                  
 -- (10pt) Using tupleToList and the read function write the following
 -- function that parses the input string, and then converts the parsed
 -- list into a list of Haskell integers.
 parseTuples :: String -> Maybe [Int]
 parseTuples s = case (tupleToList s) of
-                  Nothing -> undefined
-                  Just l -> undefined
+                  Nothing -> Nothing
+                  Just l  -> Just $ read"l"::int
