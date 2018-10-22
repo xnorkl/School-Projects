@@ -20,7 +20,9 @@ data BTree a =
 -- into graphical form, and then thinking about how the recursion
 -- should proceed.
 btree2list :: BTree a -> [a]
-btree2list = undefined
+btree2list Empty = []
+btree2list (Node root ltree rtree) = [root] ++ btree2list ltree ++ btree2list rtree 
+
 
 -- Question 2 (5 pt).  Tree rotation is a common operation on trees.
 -- In this problem define the rotateLeft function which takes a BTree
