@@ -1,0 +1,19 @@
+Name: Thuy Nguyen
+Total: +10
+
+-- Question 0: +10
+
+   /Users/heades/teaching/CSCI-3300/student-repos/tgordon/hwk/3/hwk3.hs:60:30-43: error: …
+    • Couldn't match expected type ‘int’ with actual type ‘Maybe a0’
+      ‘int’ is a rigid type variable bound by
+        an expression type signature:
+          forall int. int
+        at /Users/heades/teaching/CSCI-3300/student-repos/tgordon/hwk/3/hwk3.hs:60:46-48
+    • In the expression: Just $ read "l" :: int
+      In a case alternative: Just l -> Just $ read "l" :: int
+      In the expression:
+        case (tupleToList s) of
+          Nothing -> Nothing
+          Just l -> Just $ read "l" :: int
+   |
+Compilation failed.
