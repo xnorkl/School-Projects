@@ -1,4 +1,4 @@
-Name: Thuy Nguyen
+Name: Thomas Gordon
 Total: +10
 
 -- Question 0: +10
