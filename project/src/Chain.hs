@@ -3,7 +3,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 
-import Crypto.Hash (hash, hashWith, SHA256(..), Digest) 
+module Chain where 
+
+import Crypto.Hash 
 import Data.ByteString.UTF8 (fromString, toString)
 import Data.Text.Encoding (encodeUtf8)
 import Data.ByteString.Base64 (encode, decode)
@@ -13,15 +15,11 @@ import Data.Text as T
 import Data.Time.Clock.POSIX (POSIXTime, getPOSIXTime)
 import GHC.Generics
 import Text.PrettyPrint
-import Network.HTTP.Conduit
 import qualified Data.Text.IO as TIO
 import qualified Data.ByteString as B
-import qualified Data.ByteArray as BA (pack, unpack)
-
-main :: IO ()
-main =  putStrLn "mutter"
 
 type Hash   = Digest SHA256
+type Stamp  = Int
 
 data Trans  = Trans
   { from  ::  B.ByteString
@@ -29,38 +27,51 @@ data Trans  = Trans
   , bdata ::  B.ByteString
   } deriving (Show)
 
-data Block  = Block 
+data Block  = Block
   { depth ::  Int
-  , stamp ::  Int
+  , stamp ::  Stamp
   , trans ::  Trans
   , bhash ::  Hash
   , phash ::  Maybe Hash
-  , nonce ::  Maybe Int
+  , nonce ::  Int
   } deriving (Show, Generic)
 
-genesisBlock  ::  Block
-genesisBlock  = Block depth stamp trans bhash Nothing Nothing 
+genesisBlock  :: Block
+genesisBlock  = Block depth stamp trans bhash Nothing nonce 
   where 
     depth = 0
     stamp = 0
     trans = Trans "Root" "World" ""
-    bhash = hashWith SHA256 $ fromString phash
+    bhash = hashWith SHA256 $ fromString $ Prelude.foldl (++) "" [show depth,phash]
     phash = "0"
+    nonce = 0
+
+getBlock  ::  Block -> Stamp -> Trans -> Block
+getBlock  parentBlock@(Block depth' _ _ bhash' phash' nonce') stamp' trans' = newblock 
+  where newblock = Block
+          { depth = depth' + 1
+          , stamp = stamp'
+          , trans = trans'
+          , phash = Just $ bhash'        
+          , bhash = getHash parentBlock
+          , nonce = proofOfWork $ nonce' 
+          }
+
+getHash :: Block -> Digest SHA256
+getHash block@(Block depth stamp _ bhash phash _) = hashWith SHA256 $ digest
+  where 
+    digest = fromString $ Prelude.foldl (++) "" [show depth, show stamp, show phash, show bhash]
+
+proofOfWork :: Int -> Int
+proofOfWork pnum
+  | pnum `mod` num == 0 = pnum
+  | pnum `mod` num /= 0 = proofOfWork num
+  where num = pnum + 1
+
+------MonadIO...server?
 
 getStamp  :: IO Int
 getStamp  = round <$> getPOSIXTime
-
-hashBlock :: Block -> Digest SHA256
-hashBlock (Block _ stamp _ bhash phash _) = hashWith SHA256 $ digest
-  where 
-    digest = fromString $ show stamp ++ show bhash ++ show phash
-
-proofOfWork :: Int -> Maybe Int
-proofOfWork pnum
-  | pnum `mod` num == 0 = Just $ pnum
-  | pnum `mod` num /= 0 = proofOfWork num
-  | otherwise = Nothing
-  where num = pnum + 1
 
 getTrans :: IO Trans
 getTrans = do
@@ -72,21 +83,14 @@ getTrans = do
   msg   <- B.getLine    
   return $ Trans from to msg 
 
+
+------MonadIO needs to be utilizied differently
 mineBlock :: (MonadIO m) => Block -> m Block
 mineBlock parentBlock = do 
   time    <- liftIO getStamp
   ltrans  <- liftIO getTrans
-  let block = Block 
-        { depth  = depth parentBlock + 1
-        , stamp  = time
-        , trans  = ltrans 
-        , phash  = Just $ bhash parentBlock
-        , bhash  = hashBlock parentBlock
-        , nonce  = proofOfWork $ stamp parentBlock
-        }
+  let block = getBlock parentBlock time ltrans
   return $ block
-
-
 
   
  
