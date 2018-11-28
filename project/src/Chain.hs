@@ -1,97 +1,89 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# Language OverloadedStrings #-}
 
 module Chain where 
 
-import Crypto.Hash 
-import Data.ByteString.UTF8 (fromString, toString)
-import Data.Text.Encoding (encodeUtf8)
-import Data.ByteString.Base64 (encode, decode)
 import Control.Monad.Trans
+import Control.Comonad.Cofree
 import System.IO
-import Data.Text as T
-import Data.Time.Clock.POSIX (POSIXTime, getPOSIXTime)
 import GHC.Generics
-import Text.PrettyPrint
-import qualified Data.Text.IO as TIO
-import qualified Data.ByteString as B
+import Data.ByteString as B 
+import Data.ByteArray as BA
+import Data.Sequence as Seq 
+import Data.Data
+import Data.ByteString.Lazy.UTF8 as UTF8
 
-type Hash   = Digest SHA256
-type Stamp  = Int
 
-data Trans  = Trans
-  { from  ::  B.ByteString
-  , to    ::  B.ByteString
-  , bdata ::  B.ByteString
-  } deriving (Show)
+import Encryption
+import Server
+import Lib 
 
-data Block  = Block
-  { depth ::  Int
-  , stamp ::  Stamp
-  , trans ::  Trans
-  , bhash ::  Hash
-  , phash ::  Maybe Hash
-  , nonce ::  Int
-  } deriving (Show, Generic)
+----Block Construction----
 
 genesisBlock  :: Block
-genesisBlock  = Block depth stamp trans bhash Nothing nonce 
+genesisBlock  = Block depth stamp trans Nothing 
   where 
     depth = 0
     stamp = 0
-    trans = Trans "Root" "World" ""
-    bhash = hashWith SHA256 $ fromString $ Prelude.foldl (++) "" [show depth,phash]
-    phash = "0"
-    nonce = 0
+    trans = Trans  
+              (UTF8.fromString "Root") 
+              (UTF8.fromString  "World") 
+              (UTF8.fromString  "Initial Transaction")
+    bhash = getHash $ squashTrans trans
+    phash = Nothing
 
-getBlock  ::  Block -> Stamp -> Trans -> Block
-getBlock  parentBlock@(Block depth' _ _ bhash' phash' nonce') stamp' trans' = newblock 
-  where newblock = Block
-          { depth = depth' + 1
-          , stamp = stamp'
-          , trans = trans'
-          , phash = Just $ bhash'        
-          , bhash = getHash parentBlock
-          , nonce = proofOfWork $ nonce' 
-          }
+newBlock  ::  Chain -> Stamp -> Trans -> Block
+newBlock chain time' trans'  = newblock
+  where
+    newblock  = Block
+      { depth = Seq.length chain + 1
+      , stamp = time'
+      , trans = trans'
+      , phash = getHash $ squashTrans trans'
+      }
+ 
 
-getHash :: Block -> Digest SHA256
-getHash block@(Block depth stamp _ bhash phash _) = hashWith SHA256 $ digest
-  where 
-    digest = fromString $ Prelude.foldl (++) "" [show depth, show stamp, show phash, show bhash]
+mineBlock :: (MonadIO m) => chain -> m Chain
+mineBlock chain  = do
+  time    <-  liftIO getStamp
+  ltrans  <-  liftIO getTrans
+  let block = newBlock chain time ltrans
+  let currentchain = chain |> block 
+  return $ currentchain
 
-proofOfWork :: Int -> Int
-proofOfWork pnum
-  | pnum `mod` num == 0 = pnum
-  | pnum `mod` num /= 0 = proofOfWork num
-  where num = pnum + 1
+ 
+----Chain Construction and Interface----
 
-------MonadIO...server?
+genesisChain  ::  Chain
+genesisChain  = Seq.singleton genesisBlock
 
-getStamp  :: IO Int
-getStamp  = round <$> getPOSIXTime
+checkChain  ::  Chain
+checkChain = undefined 
 
-getTrans :: IO Trans
-getTrans = do
-  putStr "From: " >> hFlush stdout
-  from  <-  B.getLine
-  putStr "To: " >> hFlush stdout
-  to    <-  B.getLine
-  putStr "Message: " >> hFlush stdout
-  msg   <- B.getLine    
-  return $ Trans from to msg 
+getLastBlock  ::  Chain -> Block
+getLastBlock  chain = Seq.index chain (Seq.length chain - 1)
+
+getChainSize  ::  Chain -> Maybe Int
+getChainSize chain 
+  | Seq.length chain == 0 = Nothing
+  | otherwise = Just $ Seq.length chain
+
+growChain ::  Chain
+growChain = undefined
+
+squashTrans ::  Trans -> B.ByteString
+squashTrans trans'  = fromString $ show trans' 
+
+getMHash  ::  Block -> UTF8.ByteString
+getMHash  block@(Block _ _ _ phash') = UTF8.fromString $ show phash'
+
+getMerkl  ::  Chain -> Hash
+getMerkl  chain = undefined
 
 
-------MonadIO needs to be utilizied differently
-mineBlock :: (MonadIO m) => Block -> m Block
-mineBlock parentBlock = do 
-  time    <- liftIO getStamp
-  ltrans  <- liftIO getTrans
-  let block = getBlock parentBlock time ltrans
-  return $ block
 
+
+
+  
   
  
 

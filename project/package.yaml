@@ -27,8 +27,10 @@ library:
   exposed-modules:
     - Chain
     - Network
+    - Encryption
+    - Server
     - Lib
-
+  
   dependencies:
     - time
     - text
@@ -41,13 +43,11 @@ library:
     - pretty
     - network-transport
     - network-transport-tcp
-    #  - distributed-process 
-    #  - distributed-process-async
     - network-transport
     - containers
     - network
     - binary
-
+    - free
 
 executables:
   project-exe:
