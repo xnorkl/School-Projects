@@ -1,0 +1,83 @@
+cabal-version: 2.2
+
+-- This file has been generated from package.yaml by hpack version 0.31.1.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 597f4c15aa5d31aeada300fc39f6641855ff4841702940018be5c4b8edc68d19
+
+name:           toychain
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/xnorlord/project#readme>
+homepage:       https://github.com/xnorlord/toy#readme
+bug-reports:    https://github.com/xnorlord/toy/issues
+author:         Thomas Gordon
+maintainer:     thogordon@augusta.edu
+copyright:      Copyright (c) 2018-2019 Thomas Gordon
+license:        0BSD
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/xnorlord/toy
+
+library
+  exposed-modules:
+      DataTypes
+      Block
+      Chain
+      SpockServer
+  other-modules:
+      Paths_toychain
+  hs-source-dirs:
+      src
+  build-depends:
+      Spock
+    , Spock-core
+    , aeson
+    , base >=4.7 && <5
+    , base16-bytestring
+    , bytestring
+    , cryptohash
+    , cryptonite
+    , memory
+    , mtl
+    , text
+    , time
+    , utf8-string
+  default-language: Haskell2010
+
+executable toychain-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_toychain
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      Spock
+    , Spock-core
+    , aeson
+    , base >=4.7 && <5
+    , bytestring
+    , mtl
+    , text
+    , toychain
+  default-language: Haskell2010
+
+test-suite toychain-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_toychain
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , toychain
+  default-language: Haskell2010

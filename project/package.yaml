@@ -1,7 +1,7 @@
-name:                project
+name:                toychain
 version:             0.1.0.0
-github:              "xnorlord/project"
-license:             BSD3
+github:              "xnorlord/toy"
+license:             0BSD
 author:              "Thomas Gordon"
 maintainer:          "thogordon@augusta.edu"
 copyright:           "Copyright (c) 2018-2019 Thomas Gordon"
@@ -25,32 +25,27 @@ dependencies:
 library:
   source-dirs: src
   exposed-modules:
+    - DataTypes
+    - Block
     - Chain
-    - Network
-    - Encryption
-    - Server
-    - Lib
-  
+    - SpockServer 
   dependencies:
+    - aeson
     - time
     - text
     - cryptonite
+    - cryptohash
     - bytestring
-    - memory
-    - base64-bytestring
+    - base16-bytestring
     - utf8-string
+    - bytestring
     - mtl
-    - pretty
-    - network-transport
-    - network-transport-tcp
-    - network-transport
-    - containers
-    - network
-    - binary
-    - free
-
+    - memory
+    - Spock
+    - Spock-core
+    - text
 executables:
-  project-exe:
+  toychain-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -58,10 +53,16 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - project
+    - toychain
+    - aeson
+    - bytestring
+    - mtl
+    - Spock
+    - Spock-core
+    - text
 
 tests:
-  project-test:
+  toychain-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -69,4 +70,4 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - project
+    - toychain

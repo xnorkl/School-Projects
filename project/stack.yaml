@@ -37,7 +37,12 @@ packages:
 # Dependency packages to be pulled from upstream that are not in the resolver
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
-# extra-deps: []
+extra-deps: 
+- distributed-process-0.7.4@sha256:9e43cb9a27e976e3e4c054e783bdfbd6140760e70997448da66993f4674a6409
+- distributed-process-p2p-0.1.4.0@sha256:b8fb99593878370f8f0238dd8779291f58a2414c3cab4f8ff91eb8c1b69f6b1e
+- network-transport-tcp-0.6.0@sha256:077b733c97db7949d18d09877e847fae117cc6e4e5c35941442f52debbd32452
+- network-transport-0.5.2@sha256:902e333a7b402778cdc0c811114dc432ef6e5dd0b2242558bb085b76b0a39d1a
+- GenericPretty-1.2.2@sha256:65fd4aeedc326c356a866169e3511ef14fd6b3284ff9c29273f8a3b90dc9e5eb
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

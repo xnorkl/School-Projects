@@ -1,89 +1,96 @@
-{-# Language OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE Rank2Types        #-}
 
-module Chain where 
+module Chain where
 
-import Control.Monad.Trans
-import Control.Comonad.Cofree
-import System.IO
-import GHC.Generics
-import Data.ByteString as B 
-import Data.ByteArray as BA
-import Data.Sequence as Seq 
-import Data.Data
-import Data.ByteString.Lazy.UTF8 as UTF8
-
-
-import Encryption
-import Server
-import Lib 
-
-----Block Construction----
-
-genesisBlock  :: Block
-genesisBlock  = Block depth stamp trans Nothing 
-  where 
-    depth = 0
-    stamp = 0
-    trans = Trans  
-              (UTF8.fromString "Root") 
-              (UTF8.fromString  "World") 
-              (UTF8.fromString  "Initial Transaction")
-    bhash = getHash $ squashTrans trans
-    phash = Nothing
-
-newBlock  ::  Chain -> Stamp -> Trans -> Block
-newBlock chain time' trans'  = newblock
-  where
-    newblock  = Block
-      { depth = Seq.length chain + 1
-      , stamp = time'
-      , trans = trans'
-      , phash = getHash $ squashTrans trans'
-      }
- 
-
-mineBlock :: (MonadIO m) => chain -> m Chain
-mineBlock chain  = do
-  time    <-  liftIO getStamp
-  ltrans  <-  liftIO getTrans
-  let block = newBlock chain time ltrans
-  let currentchain = chain |> block 
-  return $ currentchain
-
- 
-----Chain Construction and Interface----
-
-genesisChain  ::  Chain
-genesisChain  = Seq.singleton genesisBlock
-
-checkChain  ::  Chain
-checkChain = undefined 
-
-getLastBlock  ::  Chain -> Block
-getLastBlock  chain = Seq.index chain (Seq.length chain - 1)
-
-getChainSize  ::  Chain -> Maybe Int
-getChainSize chain 
-  | Seq.length chain == 0 = Nothing
-  | otherwise = Just $ Seq.length chain
-
-growChain ::  Chain
-growChain = undefined
-
-squashTrans ::  Trans -> B.ByteString
-squashTrans trans'  = fromString $ show trans' 
-
-getMHash  ::  Block -> UTF8.ByteString
-getMHash  block@(Block _ _ _ phash') = UTF8.fromString $ show phash'
-
-getMerkl  ::  Chain -> Hash
-getMerkl  chain = undefined
+import           	Block
+import			DataTypes
+import           	System.IO
+import			Data.IORef
+import           	Data.String         			(fromString)
+import           	Data.Time.Clock.POSIX 
+import qualified 	Control.Monad.State 	as S
+import qualified 	Control.Monad.Trans 	as T
 
 
 
+-- IO interfaces
+
+mine :: (T.MonadIO m) => S.StateT Blockchain m Blockchain
+mine = T.liftIO ioStamp >>= retMine
+
+requestInput :: (T.MonadIO m) => S.StateT Blockchain m Blockchain
+requestInput = T.liftIO ioTrans >>= mkTrans
+
+requestId :: (T.MonadIO m) => S.StateT Blockchain m Blockchain
+requestId =  T.liftIO ioBlockId >>= getBlockhash
+
+ioStamp  :: IO Int
+ioStamp  = round <$> getPOSIXTime
+
+ioTrans :: IO Trans
+ioTrans = do
+  putStr "From: "     >> hFlush stdout
+  from  <-  getLine 
+  putStr "To: "       >> hFlush stdout
+  to    <-  getLine
+  putStr "Message: "  >> hFlush stdout
+  msg   <-  getLine    
+  return $ Trans from to msg
+
+ioBlockId :: IO String
+ioBlockId = do
+  putStr "Enter a block id: " >> hFlush stdout
+  input <- getLine
+  return input
+
+-- State interfaces
+
+runChain :: s -> IO (RunStateT s IO)
+runChain s0 = do
+    r <- newIORef s0
+    return $ RunStateT $ \act -> do
+        s <- readIORef r
+        (x, s') <- S.runStateT act s
+        atomicModifyIORef' r $ const (s', x)
+
+retMine :: (Monad m) => Int -> S.StateT Blockchain m Blockchain
+retMine stamp = do
+    bChain <- S.get 
+    let mineb = mineBlock (head bChain) 0 
+    let newbh = Block (index mineb) [] stamp "" (hashBlock mineb) Nothing
+    let newbc = ([newbh, mineb] ++ (tail bChain))
+    S.put newbc
+    return [mineb]
+
+getCurrent :: (Monad m) => S.StateT Blockchain m Blockchain
+getCurrent = do
+    bChain <- S.get
+    return $ [head bChain]
+
+getBlockhash :: (Monad m) => String -> S.StateT Blockchain m Blockchain
+getBlockhash h = do
+    bChain <- S.get
+    return $ filter (\b -> (hashBlock b) == h) bChain
+
+mkTrans :: (Monad m) => Trans -> S.StateT Blockchain m Blockchain
+mkTrans trans = do
+    bChain <- S.get
+    let header = addTrans (head bChain) trans  
+    let newbcS = ([header] ++ (tail bChain))
+    S.put newbcS
+    return [header]
+
+getTrans  :: (Monad m) => S.StateT Blockchain m Trans
+getTrans  = do
+  bChain <- S.get
+  let header = fetchMsg $ head bChain
+  return header
+
+getBlockchain :: (Monad m) => S.StateT Blockchain m Blockchain
+getBlockchain = S.get >>= return
 
 
-  
-  
- 
+
 
