@@ -16,9 +16,9 @@ app = do
     liveChain <- runChain [genesisBlock ]
     runSpock 8080 $ spockT (runStateT liveChain) $ do
         get   "chain"     $ (M.lift getBlockchain)  >>= json
-        get   "peak"      $ (M.lift getCurrent)     >>= json        
+        get   "peek"      $ (M.lift getCurrent)     >>= json        
         get   "find"      $ (M.lift requestId)      >>= json
-        get   "peakTrans" $ (M.lift $ getTrans)     >>= json
+        get   "peekTrans" $ (M.lift $ getTrans)     >>= json
         post  "mineBlock" $ (M.lift mine)           >>= json
         post  "sendTrans" $ (M.lift $ requestInput) >>= json
               

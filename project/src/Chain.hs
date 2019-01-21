@@ -4,16 +4,14 @@
 
 module Chain where
 
-import           	Block
-import			DataTypes
-import           	System.IO
-import			Data.IORef
-import           	Data.String         			(fromString)
-import           	Data.Time.Clock.POSIX 
-import qualified 	Control.Monad.State 	as S
-import qualified 	Control.Monad.Trans 	as T
-
-
+import            Block
+import            DataTypes
+import            System.IO
+import            Data.IORef
+import            Data.String           (fromString)
+import            Data.Time.Clock.POSIX 
+import qualified  Control.Monad.State   as S
+import qualified  Control.Monad.Trans   as T
 
 -- IO interfaces
 

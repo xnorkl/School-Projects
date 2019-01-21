@@ -1,0 +1,71 @@
+name:                toychain
+version:             0.1.0.0
+github:              "xnorlord/toy"
+license:             BSD3
+author:              "Thomas Gordon"
+maintainer:          "thogordon@augusta.edu"
+copyright:           "Copyright (c) 2018-2019 Thomas Gordon"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/xnorlord/project#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+  exposed-modules:
+    - Chain
+    - Server 
+  dependencies:
+    - aeson
+    - time
+    - text
+    - cryptonite
+    - cryptohash
+    - bytestring
+    - base16-bytestring
+    - utf8-string
+    - bytestring
+    - mtl
+    - memory
+    - Spock
+    - Spock-core
+    - text
+executables:
+  project-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - toychain
+    - aeson
+    - bytestring
+    - mtl
+    - Spock
+    - Spock-core
+    - text
+
+tests:
+  project-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - project
